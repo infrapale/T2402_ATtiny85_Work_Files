@@ -16,6 +16,7 @@ https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-2586-AVR-8-bit-Microcontr
 #include <TinyWireS.h>
 #define  LED            (4u)
 #define  LED_GREEN      (3u)
+#define  TEST_PIN_1     (1u)
 #define  I2C_ADDR       13
 #define  I2C_RX_BUFF_SIZE   (16)
 #define  I2C_TX_BUFF_SIZE   (16)
@@ -26,6 +27,11 @@ https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-2586-AVR-8-bit-Microcontr
 #define DEFAULT_OFF_TIMEOUT  30000 
 #define DEFAULT_ 
 
+typedef enum 
+{
+  MASTER_TO_SLAVE = 0,
+  SLAVE_TO_MASTER 
+} master_slave_direction_et;
 
 typedef enum
 {
@@ -34,6 +40,8 @@ typedef enum
   REG_ADDR_CLEAR_WATCHDOG   = 0x08,
   REG_ADDR_SWITCH_OFF       = 0x09,
   REG_ADDR_EEPROM_ADDR      = 0x0A,
+  REG_ADDR_EEPROM_FUNC      = 0x0C,
+  REG_ADDR_EEPROM_STATUS    = 0x0D,
   REG_ADDR_EEPROM_READ      = 0x10,
   REG_ADDR_EEPROM_WRITE     = 0x20,
   REG_ADDR_3 = 0x03,
@@ -41,7 +49,17 @@ typedef enum
   REG_ADDR_5 = 0x05,
 } reg_addr_et;
 
+typedef enum
+{
+  EEPROM_FUNC_READ        = 0x01,
+  EEPROM_FUNC_WRITE       = 0x02,
+}  eeprom_func_et;
 
+typedef enum
+{
+  EEPROM_STATUS_RD_READY    = 0x01,
+  EEPROM_STATUS_WR_READY    = 0x02,
+}  eeprom_status_et;
 
 typedef struct
 {
@@ -80,10 +98,31 @@ void setup()
 {
   pinMode(LED, OUTPUT );
   pinMode(LED_GREEN, OUTPUT );
+  pinMode(TEST_PIN_1, OUTPUT );
+
   digitalWrite(LED_GREEN, HIGH);
+  digitalWrite(TEST_PIN_1, LOW);
+  
   TinyWireS.begin(I2C_ADDR);                
   TinyWireS.onReceive(receiveEvent);
   TinyWireS.onRequest(requestEvent);
+
+  for (uint8_t i = 0; i < I2C_REG_SIZE; i++) 
+  {
+    i2c_reg[i] = i;
+  }  
+}
+
+void blink_n(uint8_t n, uint16_t ms)
+{
+  for (uint8_t i=0; i < n; i++)
+  {
+    digitalWrite(LED_GREEN, HIGH);
+    delay(ms);
+    digitalWrite(LED_GREEN, LOW);
+    delay(ms);
+  }
+
 }
 
 void loop()
@@ -105,6 +144,10 @@ void loop()
         break;
       case REG_ADDR_EEPROM_ADDR:
         break;
+      case REG_ADDR_EEPROM_FUNC:
+        break;
+      case REG_ADDR_EEPROM_STATUS:
+        break;
       case REG_ADDR_EEPROM_READ:
         break;
       case REG_ADDR_EEPROM_WRITE:
@@ -114,46 +157,70 @@ void loop()
         break;
     }
     cntrl.new_msg = false;
+
+
+
   }
 }
 
 
-uint8_t get_msg_len(reg_addr_et reg_addr)
+uint8_t get_msg_len(reg_addr_et reg_addr, master_slave_direction_et master_slave)
 {
-    uint8_t nbr_bytes = 0;
-    switch(reg_addr)
-    {
-      case REG_ADDR_SET_WDT_TIMEOUT:
-        nbr_bytes = 4;
-        break;
-      case REG_ADDR_SET_OFF_TIME:
-        nbr_bytes = 4;
-        break;
-      case REG_ADDR_CLEAR_WATCHDOG:
-        nbr_bytes = 4;
-        break;
-      case REG_ADDR_SWITCH_OFF:
-        nbr_bytes = 4;
-        break;
-      case REG_ADDR_EEPROM_ADDR:
-        nbr_bytes = 4;
-        break;
-      case REG_ADDR_EEPROM_READ:
-        nbr_bytes = 4;
-        break;
-      case REG_ADDR_EEPROM_WRITE:
-        nbr_bytes = 4;
-        break;
-      default:
-        nbr_bytes = 4;
-        break;
-    }
-  return nbr_bytes;
+  uint8_t m2s_bytes = 0;
+  uint8_t s2m_bytes = 0;
+  switch(reg_addr)
+  {
+    case REG_ADDR_SET_WDT_TIMEOUT:
+      m2s_bytes = 4;
+      s2m_bytes = 4;
+      break;
+    case REG_ADDR_SET_OFF_TIME:
+      m2s_bytes = 4;
+      s2m_bytes = 4;
+      break;
+    case REG_ADDR_CLEAR_WATCHDOG:
+      m2s_bytes = 1;
+      s2m_bytes = 1;
+      break;
+    case REG_ADDR_SWITCH_OFF:
+      m2s_bytes = 1;
+      s2m_bytes = 1;
+      break;
+    case REG_ADDR_EEPROM_ADDR:
+      m2s_bytes = 4;
+      s2m_bytes = 4;
+      break;
+    case REG_ADDR_EEPROM_FUNC:
+      m2s_bytes = 1;
+      s2m_bytes = 1;
+      break;
+    case REG_ADDR_EEPROM_STATUS:
+      m2s_bytes = 1;
+      s2m_bytes = 1;
+      break;
+    case REG_ADDR_EEPROM_READ:
+      m2s_bytes = 1;
+      s2m_bytes = 1;
+      break;
+    case REG_ADDR_EEPROM_WRITE:
+      m2s_bytes = 1;
+      s2m_bytes = 1;
+      break;
+    default:
+      m2s_bytes = 0;
+      s2m_bytes = 0;
+      break;
+  }
+  if (master_slave == MASTER_TO_SLAVE) return m2s_bytes;
+  else return s2m_bytes;
 }
 
 void receiveEvent(int howMany)
 {
     digitalWrite(LED, HIGH);
+
+    digitalWrite(TEST_PIN_1, HIGH);
+    
     if (howMany < 1)
     {
         // Sanity-check
@@ -164,7 +231,7 @@ void receiveEvent(int howMany)
         // Also insane number
         return;
     }
-
+    
     cntrl.reg_position = TinyWireS.receive();
     howMany--;
     if (!howMany)
@@ -177,11 +244,17 @@ void receiveEvent(int howMany)
     {
         i2c_reg[cntrl.reg_position+offs] = TinyWireS.receive();
         offs++;
-        if (cntrl.reg_position + offs >= I2C_REG_SIZE)
+        if ((cntrl.reg_position + offs) >= I2C_REG_SIZE)
         {
             offs = 0;
         }
     }
+
+    digitalWrite(TEST_PIN_1, LOW);
+    // for (uint8_t i = 0; i < I2C_REG_SIZE; i++) 
+    // {
+    //   i2c_reg[i] = (uint8_t) howMany;
+    // }  
     cntrl.new_msg = true;
    
 
@@ -192,17 +265,14 @@ void receiveEvent(int howMany)
 
 void requestEvent()
 {  
-    uint8_t bytes = get_msg_len(cntrl.reg_position);
+    //cntrl.reg_position = REG_ADDR_SET_WDT_TIMEOUT;
+    uint8_t bytes = get_msg_len(cntrl.reg_position, SLAVE_TO_MASTER);
     digitalWrite(LED_GREEN, LOW);   
     for(uint8_t i = 0; i < bytes; i++)
     {
       TinyWireS.send(i2c_reg[cntrl.reg_position + i]);
     }
 
-    // Increment the reg position on each read, and loop back to zero
-    cntrl.reg_position++;
-    if (cntrl.reg_position >= I2C_REG_SIZE)
-    {
-        cntrl.reg_position = 0;
-    }
+    //blink_n(bytes,4000);
+
 }
