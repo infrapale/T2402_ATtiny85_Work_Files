@@ -149,7 +149,7 @@ void reg_time_machine(void)
       }
       if (millis() >  cntrl.wd_next_reset_ms)
       {
-          //digitalWrite(TEST_PIN_YELLOW, HIGH);
+          digitalWrite(TEST_PIN_YELLOW, HIGH);
           reg.timeout_ms = millis() + 10;
           reg.state = 40;
       }
@@ -176,6 +176,7 @@ void reg_time_machine(void)
           digitalWrite(TEST_PIN_GREEN, LOW);
           reg.state = 0;
           reg.action = REG_ACTION_UNDEF;
+          cntrl.sleep_state = 1;
       } 
 
       break;
@@ -183,7 +184,7 @@ void reg_time_machine(void)
       if (millis() > reg.timeout_ms)
       {
           cntrl.wd_next_reset_ms = millis() + cntrl.wd_interval_ms;
-          //digitalWrite(TEST_PIN_YELLOW, LOW);
+          digitalWrite(TEST_PIN_YELLOW, LOW);
           reg.state = 0;
       } 
       break;
@@ -201,42 +202,43 @@ void reg_action_on_receive(reg_addr_et reg_addr)
 {
     uint32_t u32;
 
-    blink_color_times(TEST_PIN_GREEN, reg_addr, 1);
+    //blink_color_times(TEST_PIN_GREEN, reg_addr, 1);
     switch(reg_addr)
     {
       case REG_ADDR_WD_INTERVAL:
-        u32 = reg_rd_u32(cntrl.reg_position+1);
+        u32 = reg_rd_u32(cntrl.reg_position);
         ee_prom_wr_u32( EEPROM_ADDR_WD_INTERVAL, u32);
         cntrl.wd_interval_ms =  u32;
         reg.action = REG_ACTION_EEPROM_WR;
         break;
       case REG_ADDR_SLEEP_TIME:
-        u32 = reg_rd_u32(cntrl.reg_position+1);
+        u32 = reg_rd_u32(cntrl.reg_position);
         ee_prom_wr_u32( EEPROM_ADDR_SLEEP_TIME, u32);
         reg.action = REG_ACTION_EEPROM_WR;
         break;
       case REG_ADDR_CLEAR_WATCHDOG:
-        //digitalWrite(TEST_PIN_ORANGE, HIGH);
+        digitalWrite(TEST_PIN_ORANGE, HIGH);
         cntrl.wd_next_reset_ms = millis() + cntrl.wd_interval_ms; 
-        //digitalWrite(TEST_PIN_ORANGE, LOW);
+        digitalWrite(TEST_PIN_ORANGE, LOW);
         break;
       case REG_ADDR_SWITCH_OFF:
-        digitalWrite(TEST_PIN_GREEN, LOW);
+        cntrl.sleep_state = 1;
+        //digitalWrite(TEST_PIN_GREEN, LOW);
         break;
       case REG_ADDR_EEPROM_ADDR:
         reg.eeprom_addr = reg_rd_u16(cntrl.reg_position+1);
         break;
       case REG_ADDR_EEPROM_LOAD:
-        digitalWrite(TEST_PIN_ORANGE, HIGH);
+        // digitalWrite(TEST_PIN_ORANGE, HIGH);
         ee_prom_read_array( reg.eeprom_addr, &i2c_reg[REG_ADDR_EEPROM_READ], 8);
         reg.action = REG_ACTION_EEPROM_RD;
-        digitalWrite(TEST_PIN_ORANGE, LOW);
+        //digitalWrite(TEST_PIN_ORANGE, LOW);
         break;
       case REG_ADDR_EEPROM_SAVE:
-        digitalWrite(TEST_PIN_YELLOW, HIGH);
+        //digitalWrite(TEST_PIN_YELLOW, HIGH);
         ee_prom_write_array( reg.eeprom_addr, &i2c_reg[REG_ADDR_EEPROM_WRITE], 8);
         reg.action = REG_ACTION_EEPROM_WR;
-        digitalWrite(TEST_PIN_YELLOW, LOW);
+        //digitalWrite(TEST_PIN_YELLOW, LOW);
         break;
       case REG_ADDR_EEPROM_READ:
         break;

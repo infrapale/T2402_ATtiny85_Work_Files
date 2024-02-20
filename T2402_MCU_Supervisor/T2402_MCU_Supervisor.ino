@@ -15,6 +15,7 @@ https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-2586-AVR-8-bit-Microcontr
 
 #include <TinyWireS.h>
 #include <EEPROM.h>
+#include "tinysnore.h"
 #include "main.h"
 #include "reg.h"
 #include "ee_prom.h"
@@ -35,39 +36,43 @@ cntrl_st cntrl =
 //uint8_t i2c_reg[I2C_REG_SIZE];
 
 uint8_t i2c_rx_buff[I2C_RX_BUFF_SIZE];
+uint32_t blink_time_ms;
 
-
-void setup()
+void connect_io(void)
 {
   pinMode(TEST_PIN_GREEN, OUTPUT );
   pinMode(TEST_PIN_YELLOW, OUTPUT );
   pinMode(TEST_PIN_ORANGE, OUTPUT );
 
-  digitalWrite(TEST_PIN_GREEN, HIGH);
-  digitalWrite(TEST_PIN_YELLOW, HIGH);
-  digitalWrite(TEST_PIN_ORANGE, HIGH);
+  digitalWrite(TEST_PIN_GREEN, LOW);
+  digitalWrite(TEST_PIN_YELLOW, LOW);
+  digitalWrite(TEST_PIN_ORANGE, LOW);
+
+}
+
+void disconnect_io(void)
+{
+  pinMode(TEST_PIN_GREEN, INPUT );
+  pinMode(TEST_PIN_YELLOW, INPUT );
+  pinMode(TEST_PIN_ORANGE, INPUT );
+  // pinMode(2U,INPUT);
+  // pinMode(0U,INPUT);
+}
+
+
+void setup()
+{
+  connect_io();
   
   reg_initialize();
 
   TinyWireS.begin(I2C_ADDR);                
   TinyWireS.onReceive(receiveEvent);
   TinyWireS.onRequest(requestEvent);
-
-  // uint32_t u32 = 0;
-  // uint32_t u32rd = 0;
-
-  // for (uint8_t i=0; i < 8; i++)
-  // {
-  //   u32++;
-  //   ee_prom_wr_u32(0x40,u32);
-  //   blink_color_times(TEST_PIN_YELLOW,(uint8_t)u32, 1);
-  //   u32rd = ee_prom_rd_u32(0x40);
-  //   blink_color_times(TEST_PIN_ORANGE,(uint8_t)u32rd, 1);
-  // }
-
+  blink_time_ms = millis() + 100;
 }
 
-void sleep_statemachine(void)
+void sleep_time_machine(void)
 {
   switch(cntrl.sleep_state)
   {
@@ -90,6 +95,23 @@ void loop()
   }
 
   reg_time_machine();
+  if (cntrl.sleep_state > 0)
+  {
+    digitalWrite(TEST_PIN_GREEN, LOW);
+    disconnect_io();
+    snore(1000); 
+    cntrl.sleep_state = 0;
+    connect_io();
+    digitalWrite(TEST_PIN_GREEN, HIGH);
+
+  }
+  // if(  millis() > blink_time_ms)
+  // {
+  //   blink_time_ms = millis() + 100;
+  //   digitalWrite(TEST_PIN_GREEN, HIGH);
+  //   delayMicroseconds(2);
+  //   digitalWrite(TEST_PIN_GREEN, LOW);
+  // }
 }
 
 
@@ -108,7 +130,6 @@ void receiveEvent(int howMany)
     if (!howMany)
     {
         // This write was only to set the buffer for next read
-        //digitalWrite(TEST_PIN_1, LOW);
         return;
     }
     uint8_t offs = 0;
@@ -122,7 +143,7 @@ void receiveEvent(int howMany)
         }
     }
 
-    digitalWrite(TEST_PIN_GREEN, LOW);
+    //digitalWrite(TEST_PIN_GREEN, LOW);
 
    //state = TinyWireS.receive();
 }
