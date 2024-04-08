@@ -30,6 +30,7 @@ cntrl_st cntrl =
   .sleep_time_ms    = DEFAULT_OFF_TIMEOUT,
   .sleep_state = 0,
   .reg_position = 0,
+  .read_pos = 0,
   .new_msg = false,
 };
 
@@ -158,10 +159,11 @@ void receiveEvent(int howMany)
 
 void requestEvent()
 {  
-    uint8_t bytes = reg_get_msg_len(cntrl.reg_position, SLAVE_TO_MASTER);
+    uint8_t bytes = reg_get_msg_len(cntrl.read_pos, SLAVE_TO_MASTER);
     for(uint8_t i = 0; i < bytes; i++)
     {
-      TinyWireS.write(i2c_reg[cntrl.reg_position + i]);
+      TinyWireS.write(i2c_reg[cntrl.read_pos + i]);
+      //TinyWireS.write(bytes + i);
     }
 }
  

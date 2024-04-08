@@ -83,11 +83,11 @@ uint8_t reg_get_msg_len(reg_addr_et reg_addr, master_slave_direction_et master_s
   {
     case REG_ADDR_WD_INTERVAL:
       m2s_bytes = 4;
-      s2m_bytes = 4;
+      s2m_bytes = 0;
       break;
     case REG_ADDR_SLEEP_TIME:
       m2s_bytes = 4;
-      s2m_bytes = 4;
+      s2m_bytes = 0;
       break;
     case REG_ADDR_CLEAR_WATCHDOG:
       m2s_bytes = 1;
@@ -99,7 +99,7 @@ uint8_t reg_get_msg_len(reg_addr_et reg_addr, master_slave_direction_et master_s
       break;
     case REG_ADDR_EEPROM_ADDR:
       m2s_bytes = 2;
-      s2m_bytes = 2;
+      s2m_bytes = 0;
       break;
     case REG_ADDR_EEPROM_LOAD:
       m2s_bytes = 1;
@@ -203,6 +203,7 @@ void reg_action_on_receive(reg_addr_et reg_addr)
     uint32_t u32;
 
     //blink_color_times(TEST_PIN_GREEN, reg_addr, 1);
+    cntrl.read_pos = reg_addr;
     switch(reg_addr)
     {
       case REG_ADDR_WD_INTERVAL:
@@ -232,6 +233,7 @@ void reg_action_on_receive(reg_addr_et reg_addr)
         // digitalWrite(TEST_PIN_ORANGE, HIGH);
         ee_prom_read_array( reg.eeprom_addr, &i2c_reg[REG_ADDR_EEPROM_READ], 8);
         reg.action = REG_ACTION_EEPROM_RD;
+        cntrl.read_pos = REG_ADDR_EEPROM_READ;
         //digitalWrite(TEST_PIN_ORANGE, LOW);
         break;
       case REG_ADDR_EEPROM_SAVE:
@@ -241,6 +243,7 @@ void reg_action_on_receive(reg_addr_et reg_addr)
         //digitalWrite(TEST_PIN_YELLOW, LOW);
         break;
       case REG_ADDR_EEPROM_READ:
+        // cntrl.read_pos = REG_ADDR_EEPROM_READ;
         break;
       case REG_ADDR_EEPROM_WRITE:
         break;
