@@ -97,7 +97,7 @@ void loop()
 
   if (cntrl.new_msg)
   {
-    reg_action_on_receive( cntrl.reg_position );
+    //reg_action_on_receive( cntrl.reg_position );
     cntrl.new_msg = false;
   }
 
@@ -127,17 +127,23 @@ void receiveEvent(int howMany)
 
     //digitalWrite(TEST_PIN_GREEN, HIGH);
     
-    if (howMany < 1) return;
+    if (howMany < 1) 
+    {
+      cntrl.read_pos = 42;
+      return;
+    }  
     
     if (howMany > I2C_RX_BUFF_SIZE) return;
     
     cntrl.reg_position = TinyWireS.read();
-    blink_color_times(TEST_PIN_YELLOW, cntrl.reg_position, 1);
+
+    // blink_color_times(TEST_PIN_YELLOW, cntrl.reg_position, 1);
     cntrl.new_msg = true;
     howMany--;
     if (!howMany)
     {
         // This write was only to set the buffer for next read
+        cntrl.read_pos = cntrl.reg_position;
         return;
     }
     uint8_t offs = 0;
@@ -162,8 +168,8 @@ void requestEvent()
     uint8_t bytes = reg_get_msg_len(cntrl.read_pos, SLAVE_TO_MASTER);
     for(uint8_t i = 0; i < bytes; i++)
     {
-      TinyWireS.write(i2c_reg[cntrl.read_pos + i]);
-      //TinyWireS.write(bytes + i);
+      //TinyWireS.write(i2c_reg[cntrl.read_pos + i]);
+      TinyWireS.write(bytes);
     }
 }
  

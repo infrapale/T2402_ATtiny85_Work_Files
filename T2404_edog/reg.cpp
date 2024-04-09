@@ -243,7 +243,7 @@ void reg_action_on_receive(reg_addr_et reg_addr)
         //digitalWrite(TEST_PIN_YELLOW, LOW);
         break;
       case REG_ADDR_EEPROM_READ:
-        // cntrl.read_pos = REG_ADDR_EEPROM_READ;
+        cntrl.read_pos = REG_ADDR_EEPROM_READ +2;
         break;
       case REG_ADDR_EEPROM_WRITE:
         break;
