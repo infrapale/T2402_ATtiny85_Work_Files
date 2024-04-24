@@ -36,6 +36,8 @@ void reg_initialize(void)
     // Read from EEPROM
   cntrl.wd_interval_ms = ee_prom_rd_u32(EEPROM_ADDR_WD_INTERVAL);
   cntrl.sleep_time_ms  = ee_prom_rd_u32(EEPROM_ADDR_SLEEP_TIME);
+  if (cntrl.wd_interval_ms > 60000 ) cntrl.wd_interval_ms = 10000;
+  if (cntrl.sleep_time_ms > 60000) cntrl.sleep_time_ms = 10000;
   reg_wr_u32(REG_ADDR_WD_INTERVAL, cntrl.wd_interval_ms);
   reg_wr_u32(REG_ADDR_SLEEP_TIME, cntrl.sleep_time_ms);
 
@@ -149,7 +151,6 @@ void reg_time_machine(void)
       }
       if (millis() >  cntrl.wd_next_reset_ms)
       {
-          //digitalWrite(TEST_PIN_YELLOW, HIGH);
           reg.timeout_ms = millis() + 10;
           reg.state = 40;
       }
@@ -173,7 +174,6 @@ void reg_time_machine(void)
     case 30:  // Switch off
       if (millis() > reg.timeout_ms)
       {
-          digitalWrite(TEST_PIN_GREEN, LOW);
           reg.state = 0;
           reg.action = REG_ACTION_UNDEF;
           cntrl.sleep_state = 1;
@@ -184,7 +184,6 @@ void reg_time_machine(void)
       if (millis() > reg.timeout_ms)
       {
           cntrl.wd_next_reset_ms = millis() + cntrl.wd_interval_ms;
-          //digitalWrite(TEST_PIN_YELLOW, LOW);
           reg.state = 0;
       } 
       break;
@@ -223,27 +222,24 @@ void reg_action_on_receive(reg_addr_et reg_addr)
         digitalWrite(TEST_PIN_ORANGE, LOW);
         break;
       case REG_ADDR_SWITCH_OFF:
-        cntrl.sleep_state = 1;
-        //digitalWrite(TEST_PIN_GREEN, LOW);
+        goto_sleep();
         break;
       case REG_ADDR_EEPROM_ADDR:
         reg.eeprom_addr = reg_rd_u16(cntrl.reg_position);
         break;
       case REG_ADDR_EEPROM_LOAD:
-        // digitalWrite(TEST_PIN_ORANGE, HIGH);
         ee_prom_read_array( reg.eeprom_addr, &i2c_reg[REG_ADDR_EEPROM_READ], 8);
         reg.action = REG_ACTION_EEPROM_RD;
         cntrl.read_pos = REG_ADDR_EEPROM_READ;
-        //digitalWrite(TEST_PIN_ORANGE, LOW);
         break;
       case REG_ADDR_EEPROM_SAVE:
-        //digitalWrite(TEST_PIN_YELLOW, HIGH);
         ee_prom_write_array( reg.eeprom_addr, &i2c_reg[REG_ADDR_EEPROM_WRITE], 8);
         reg.action = REG_ACTION_EEPROM_WR;
-        //digitalWrite(TEST_PIN_YELLOW, LOW);
         break;
+      case REG_ADDR_POWER_OFF_1:
+        if (i2c_reg[REG_ADDR_POWER_OFF_1] != 1)  digitalWrite(PIN_PWR_OFF_1, LOW);
+        else  digitalWrite(PIN_PWR_OFF_1, HIGH);
       case REG_ADDR_EEPROM_READ:
-        cntrl.read_pos = REG_ADDR_EEPROM_READ +2;
         break;
       case REG_ADDR_EEPROM_WRITE:
         break;

@@ -1,9 +1,9 @@
 #ifndef __MAIN_H__
 #define __MAIN_H__
 
-#define  TEST_PIN_GREEN   (3u)
-#define  TEST_PIN_YELLOW  (4u)
-#define  TEST_PIN_ORANGE  (1u)
+#define  PIN_PWR_OFF_0      (3u)
+#define  PIN_PWR_OFF_1      (4u)
+#define  TEST_PIN_ORANGE    (1u)
 #define  I2C_ADDR       13
 #define  I2C_RX_BUFF_SIZE   (16)
 #define  I2C_TX_BUFF_SIZE   (16)
@@ -16,6 +16,13 @@
 
 #include "reg.h"
 
+typedef enum
+{
+    SLEEP_STATE_RUNNING = 0,
+    SLEEP_STATE_CLOSING,
+    SLEEP_STATE_SLEEPING,
+    SLEEP_STATE_WAKEUP
+} sleep_state_et;
 
 typedef struct
 {
@@ -23,7 +30,7 @@ typedef struct
     uint32_t  wd_interval_ms;
     uint32_t  wd_next_reset_ms;
     uint32_t  sleep_time_ms;
-    uint8_t   sleep_state;
+    sleep_state_et sleep_state;
     uint8_t   reg_position;
     uint8_t   read_pos;
     bool      new_msg;

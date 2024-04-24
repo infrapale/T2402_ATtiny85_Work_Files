@@ -12,10 +12,10 @@ typedef enum
   REG_ADDR_EEPROM_ADDR      = 0x0A,
   REG_ADDR_EEPROM_LOAD      = 0x0C,
   REG_ADDR_EEPROM_SAVE      = 0x0D,
+  REG_ADDR_POWER_OFF_1      = 0x0E,
   REG_ADDR_EEPROM_READ      = 0x10,
   REG_ADDR_EEPROM_WRITE     = 0x20,
-  REG_ADDR_3 = 0x03,
-  REG_ADDR_4 = 0x04,
+  REG_ADDR_4 = 0x0F,
   REG_ADDR_5 = 0x05,
 } reg_addr_et;
 
