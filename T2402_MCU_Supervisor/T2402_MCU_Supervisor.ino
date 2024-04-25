@@ -103,12 +103,12 @@ void loop()
   reg_time_machine();
   if (cntrl.sleep_state > 0)
   {
-    digitalWrite(TEST_PIN_GREEN, LOW);
+    digitalWrite(TEST_PIN_GREEN, HIGH);
     disconnect_io();
-    snore(1000); 
+    snore(4000); 
     cntrl.sleep_state = 0;
     connect_io();
-    digitalWrite(TEST_PIN_GREEN, HIGH);
+    digitalWrite(TEST_PIN_GREEN, LOW);
 
   }
   // if(  millis() > blink_time_ms)

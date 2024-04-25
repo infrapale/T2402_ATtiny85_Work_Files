@@ -17,3 +17,21 @@ void goto_sleep(void)
 {
     cntrl.sleep_state = SLEEP_STATE_CLOSING;
 }
+
+void power_off(void)
+{
+    digitalWrite(PIN_PWR_OFF_0, HIGH);
+    #ifdef OPTION_COMBINED_CONTROL
+      digitalWrite(PIN_PWR_OFF_1, HIGH);
+      digitalWrite(PIN_EXT_RESET, HIGH);
+    #endif
+}
+
+void power_on(void)
+{
+    digitalWrite(PIN_PWR_OFF_0, LOW);
+    #ifdef OPTION_COMBINED_CONTROL
+      digitalWrite(PIN_PWR_OFF_1, LOW);
+      digitalWrite(PIN_EXT_RESET, LOW);
+    #endif
+}

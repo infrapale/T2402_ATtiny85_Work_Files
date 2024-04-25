@@ -43,11 +43,11 @@ void connect_io(void)
 {
   pinMode(PIN_PWR_OFF_0, OUTPUT );
   pinMode(PIN_PWR_OFF_1, OUTPUT );
-  pinMode(TEST_PIN_ORANGE, OUTPUT );
+  pinMode(PIN_EXT_RESET, OUTPUT );
 
-  digitalWrite(PIN_PWR_OFF_0, HIGH);
+  digitalWrite(PIN_PWR_OFF_0, LOW);
   digitalWrite(PIN_PWR_OFF_1, LOW);
-  digitalWrite(TEST_PIN_ORANGE, LOW);
+  digitalWrite(PIN_EXT_RESET, LOW);
 
 }
 
@@ -55,7 +55,7 @@ void disconnect_io(void)
 {
   pinMode(PIN_PWR_OFF_0, INPUT );
   pinMode(PIN_PWR_OFF_1, INPUT );
-  pinMode(TEST_PIN_ORANGE, INPUT );
+  pinMode(PIN_EXT_RESET, INPUT );
   // pinMode(2U,INPUT);
   // pinMode(0U,INPUT);
 }
@@ -82,16 +82,18 @@ void setup()
 
 void sleep_time_machine(void)
 {
+  /*
   switch(cntrl.sleep_state)
   {
     case SLEEP_STATE_RUNNING:
       digitalWrite(PIN_PWR_OFF_0, LOW);
       break;
     case SLEEP_STATE_CLOSING:
+      power_off();
       disconnect_io();
-      digitalWrite(PIN_PWR_OFF_0, HIGH);
       cntrl.sleep_state = SLEEP_STATE_SLEEPING;
-      snore(cntrl.sleep_time_ms); 
+      snore(1000); 
+      //snore(cntrl.sleep_time_ms); 
       break;
     case SLEEP_STATE_SLEEPING:  
       cntrl.sleep_state = SLEEP_STATE_WAKEUP;
@@ -101,6 +103,7 @@ void sleep_time_machine(void)
       cntrl.sleep_state = SLEEP_STATE_RUNNING;
       break;  
   }
+  */
 }
 
 
@@ -116,7 +119,7 @@ void loop()
   sleep_time_machine();
 
 
-  //reg_time_machine();
+  reg_time_machine();
   if (false)    // (cntrl.sleep_state > 0)
   {
     digitalWrite(PIN_PWR_OFF_0, LOW);

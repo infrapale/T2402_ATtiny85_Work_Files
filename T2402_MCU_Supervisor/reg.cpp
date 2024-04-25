@@ -223,16 +223,14 @@ void reg_action_on_receive(reg_addr_et reg_addr)
         break;
       case REG_ADDR_SWITCH_OFF:
         cntrl.sleep_state = 1;
-        //digitalWrite(TEST_PIN_GREEN, LOW);
+        digitalWrite(TEST_PIN_GREEN, HIGH);
         break;
       case REG_ADDR_EEPROM_ADDR:
         reg.eeprom_addr = reg_rd_u16(cntrl.reg_position);
         break;
       case REG_ADDR_EEPROM_LOAD:
-        // digitalWrite(TEST_PIN_ORANGE, HIGH);
         ee_prom_read_array( reg.eeprom_addr, &i2c_reg[REG_ADDR_EEPROM_READ], 8);
         reg.action = REG_ACTION_EEPROM_RD;
-        //digitalWrite(TEST_PIN_ORANGE, LOW);
         break;
       case REG_ADDR_EEPROM_SAVE:
         //digitalWrite(TEST_PIN_YELLOW, HIGH);

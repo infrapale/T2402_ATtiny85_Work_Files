@@ -34,6 +34,7 @@ reg_st reg;
 void reg_initialize(void)
 {
     // Read from EEPROM
+  reg.state = 0;  
   cntrl.wd_interval_ms = ee_prom_rd_u32(EEPROM_ADDR_WD_INTERVAL);
   cntrl.sleep_time_ms  = ee_prom_rd_u32(EEPROM_ADDR_SLEEP_TIME);
   if (cntrl.wd_interval_ms > 60000 ) cntrl.wd_interval_ms = 10000;
@@ -151,6 +152,7 @@ void reg_time_machine(void)
       }
       if (millis() >  cntrl.wd_next_reset_ms)
       {
+          power_off();
           reg.timeout_ms = millis() + 10;
           reg.state = 40;
       }
@@ -183,7 +185,8 @@ void reg_time_machine(void)
     case 40:  //
       if (millis() > reg.timeout_ms)
       {
-          cntrl.wd_next_reset_ms = millis() + cntrl.wd_interval_ms;
+          power_on();
+          cntrl.wd_next_reset_ms = millis() + 200;  //cntrl.wd_interval_ms;
           reg.state = 0;
       } 
       break;
@@ -191,7 +194,8 @@ void reg_time_machine(void)
       break;
     case 60:  //
       break;
-    case 70:  //
+    default:  
+      reg.state = 0;
       break;
 
   }
@@ -217,9 +221,7 @@ void reg_action_on_receive(reg_addr_et reg_addr)
         reg.action = REG_ACTION_EEPROM_WR;
         break;
       case REG_ADDR_CLEAR_WATCHDOG:
-        digitalWrite(TEST_PIN_ORANGE, HIGH);
-        cntrl.wd_next_reset_ms = millis() + cntrl.wd_interval_ms; 
-        digitalWrite(TEST_PIN_ORANGE, LOW);
+        cntrl.wd_next_reset_ms = millis() +  200;  // cntrl.wd_interval_ms; 
         break;
       case REG_ADDR_SWITCH_OFF:
         goto_sleep();
@@ -239,6 +241,11 @@ void reg_action_on_receive(reg_addr_et reg_addr)
       case REG_ADDR_POWER_OFF_1:
         if (i2c_reg[REG_ADDR_POWER_OFF_1] != 1)  digitalWrite(PIN_PWR_OFF_1, LOW);
         else  digitalWrite(PIN_PWR_OFF_1, HIGH);
+        break;
+      case REG_ADDR_EXT_RESET:
+        if (i2c_reg[REG_ADDR_EXT_RESET] != 1)  digitalWrite(PIN_EXT_RESET, HIGH);
+        else  digitalWrite(PIN_EXT_RESET, LOW);
+        break;
       case REG_ADDR_EEPROM_READ:
         break;
       case REG_ADDR_EEPROM_WRITE:

@@ -3,16 +3,18 @@
 
 #define  PIN_PWR_OFF_0      (3u)
 #define  PIN_PWR_OFF_1      (4u)
-#define  TEST_PIN_ORANGE    (1u)
+#define  PIN_EXT_RESET      (1u)
 #define  I2C_ADDR       13
 #define  I2C_RX_BUFF_SIZE   (16)
 #define  I2C_TX_BUFF_SIZE   (16)
 #define  I2C_REG_SIZE       (64)
 
 
-#define DEFAULT_WDT_TIMEOUT  50 
+#define DEFAULT_WDT_TIMEOUT  1000 
 #define DEFAULT_OFF_TIMEOUT  30000 
 #define DEFAULT_ 
+
+#define OPTION_COMBINED_CONTROL 
 
 #include "reg.h"
 
