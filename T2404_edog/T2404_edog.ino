@@ -32,6 +32,7 @@ cntrl_st cntrl =
   .reg_position = 0,
   .read_pos = 0,
   .new_msg = false,
+  .wd_is_active = false,
 };
 
 //uint8_t i2c_reg[I2C_REG_SIZE];
@@ -147,7 +148,6 @@ void receiveEvent(int howMany)
     if (howMany > I2C_RX_BUFF_SIZE) return;
     
     cntrl.reg_position = TinyWireS.read();
-    cntrl.new_msg = true;
     howMany--;
     if (!howMany)
     {
@@ -162,6 +162,7 @@ void receiveEvent(int howMany)
         offs++;
         if ((cntrl.reg_position + offs) >= I2C_REG_SIZE) offs = 0;
     }
+    cntrl.new_msg = true;
 
     //digitalWrite(PIN_PWR_OFF_0, LOW);
 

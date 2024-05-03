@@ -37,10 +37,12 @@ void reg_initialize(void)
   reg.state = 0;  
   cntrl.wd_interval_ms = ee_prom_rd_u32(EEPROM_ADDR_WD_INTERVAL);
   cntrl.sleep_time_ms  = ee_prom_rd_u32(EEPROM_ADDR_SLEEP_TIME);
-  if (cntrl.wd_interval_ms > 60000 ) cntrl.wd_interval_ms = 10000;
+  if (cntrl.wd_interval_ms > 60000 ) cntrl.wd_interval_ms = DEFAULT_WDT_TIMEOUT;
   if (cntrl.sleep_time_ms > 60000) cntrl.sleep_time_ms = 10000;
   reg_wr_u32(REG_ADDR_WD_INTERVAL, cntrl.wd_interval_ms);
   reg_wr_u32(REG_ADDR_SLEEP_TIME, cntrl.sleep_time_ms);
+  cntrl.wd_next_reset_ms = millis() + DEFAULT_WDT_TIMEOUT;
+  power_on();
 
 }
 
@@ -152,9 +154,13 @@ void reg_time_machine(void)
       }
       if (millis() >  cntrl.wd_next_reset_ms)
       {
-          power_off();
-          reg.timeout_ms = millis() + 10;
-          reg.state = 40;
+          if (cntrl.wd_is_active)
+          {
+            power_off();
+            reg.timeout_ms = millis() + 500;
+            reg.state = 40;
+          }
+          else reg.state = 0;
       }
       break;
     case 5:  //
@@ -186,7 +192,7 @@ void reg_time_machine(void)
       if (millis() > reg.timeout_ms)
       {
           power_on();
-          cntrl.wd_next_reset_ms = millis() + 200;  //cntrl.wd_interval_ms;
+          cntrl.wd_next_reset_ms = millis() + cntrl.wd_interval_ms;
           reg.state = 0;
       } 
       break;
@@ -210,6 +216,7 @@ void reg_action_on_receive(reg_addr_et reg_addr)
     switch(reg_addr)
     {
       case REG_ADDR_WD_INTERVAL:
+        //blink_color_times(PIN_EXT_RESET, 5, 10);
         u32 = reg_rd_u32(cntrl.reg_position);
         ee_prom_wr_u32( EEPROM_ADDR_WD_INTERVAL, u32);
         cntrl.wd_interval_ms =  u32;
@@ -221,7 +228,8 @@ void reg_action_on_receive(reg_addr_et reg_addr)
         reg.action = REG_ACTION_EEPROM_WR;
         break;
       case REG_ADDR_CLEAR_WATCHDOG:
-        cntrl.wd_next_reset_ms = millis() +  200;  // cntrl.wd_interval_ms; 
+        cntrl.wd_next_reset_ms = millis() + cntrl.wd_interval_ms; 
+        cntrl.wd_is_active = true;
         break;
       case REG_ADDR_SWITCH_OFF:
         goto_sleep();
@@ -235,6 +243,7 @@ void reg_action_on_receive(reg_addr_et reg_addr)
         cntrl.read_pos = REG_ADDR_EEPROM_READ;
         break;
       case REG_ADDR_EEPROM_SAVE:
+        //blink_color_times(PIN_EXT_RESET, reg_addr, 5);
         ee_prom_write_array( reg.eeprom_addr, &i2c_reg[REG_ADDR_EEPROM_WRITE], 8);
         reg.action = REG_ACTION_EEPROM_WR;
         break;
@@ -249,6 +258,7 @@ void reg_action_on_receive(reg_addr_et reg_addr)
       case REG_ADDR_EEPROM_READ:
         break;
       case REG_ADDR_EEPROM_WRITE:
+        //blink_color_times(PIN_EXT_RESET, reg_addr, 5);
         break;
       default:
         
