@@ -220,7 +220,9 @@ void reg_action_on_receive(reg_addr_et reg_addr)
         u32 = reg_rd_u32(cntrl.reg_position);
         ee_prom_wr_u32( EEPROM_ADDR_WD_INTERVAL, u32);
         cntrl.wd_interval_ms =  u32;
+        // cntrl.wd_interval_ms = 500;
         reg.action = REG_ACTION_EEPROM_WR;
+        // digitalWrite(PIN_PWR_OFF_1, HIGH);
         break;
       case REG_ADDR_SLEEP_TIME:
         u32 = reg_rd_u32(cntrl.reg_position);
@@ -230,6 +232,7 @@ void reg_action_on_receive(reg_addr_et reg_addr)
       case REG_ADDR_CLEAR_WATCHDOG:
         cntrl.wd_next_reset_ms = millis() + cntrl.wd_interval_ms; 
         cntrl.wd_is_active = true;
+        // digitalWrite(PIN_EXT_RESET, HIGH);
         break;
       case REG_ADDR_SWITCH_OFF:
         goto_sleep();
