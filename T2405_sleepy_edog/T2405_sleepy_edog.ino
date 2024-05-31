@@ -15,7 +15,8 @@ https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-2586-AVR-8-bit-Microcontr
 
 #include <TinyWireS.h>
 #include <EEPROM.h>
-#include "tinysnore.h"
+// #include "tinysnore.h"
+#include <Adafruit_SleepyDog.h>
 #include "main.h"
 #include "reg.h"
 #include "ee_prom.h"
@@ -64,9 +65,10 @@ void disconnect_io(void)
 
 void setup()
 {
+  delay(2000);
   connect_io();
-  
   reg_warm_setup();
+  int countdownMS = Watchdog.enable(4000);
 
   uint32_t n = ee_prom_rd_u32(0x0010);
   if (n>8) n = 1;
@@ -75,10 +77,19 @@ void setup()
   ee_prom_wr_u32(0x0010, n);
   reg_wr_u32(0x0010, 1234);
   cntrl.sleep_state = SLEEP_STATE_RUNNING;
-  TinyWireS.begin(I2C_ADDR);                
-  TinyWireS.onReceive(receiveEvent);
-  TinyWireS.onRequest(requestEvent);
-  blink_time_ms = millis() + 100;
+
+  // TinyWireS.begin(I2C_ADDR);                
+  // TinyWireS.onReceive(receiveEvent);
+  // TinyWireS.onRequest(requestEvent);
+  // blink_time_ms = millis() + 100;
+  Watchdog.reset();
+
+  while (true)
+  {
+    blink_color_times(PIN_EXT_RESET, 4, 10);
+    delay(100);
+  }
+
 }
 
 void sleep_time_machine(void)
@@ -125,7 +136,7 @@ void loop()
   {
     digitalWrite(PIN_PWR_OFF_0, LOW);
     disconnect_io();
-    snore(cntrl.sleep_time_ms); 
+    // snore(cntrl.sleep_time_ms); 
     cntrl.sleep_state = 0;
     connect_io();
     digitalWrite(PIN_PWR_OFF_0, HIGH);
