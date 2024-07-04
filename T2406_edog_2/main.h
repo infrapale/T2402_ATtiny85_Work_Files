@@ -12,10 +12,14 @@
 #define  I2C_REG_SIZE       (64)
 
 
-#define DEFAULT_WDT_TIMEOUT  30000
+#define DEFAULT_WDT_TIMEOUT  4000
+#define DEFAULT_RESET_TIME   1000
 #define FORCED_WDT_TIMEOUT   60000
 #define DEFAULT_OFF_TIMEOUT  30000 
 #define DEFAULT_ 
+// #define DEFAULT_WD_WINDOW_LOW  100
+// #define DEFAULT_WD_WINDOW_HIGH 10000
+
 
 #define OPTION_COMBINED_CONTROL 
 
@@ -32,9 +36,9 @@ typedef enum
 typedef struct
 {
     //uint32_t  wd_timeout_ms;
-    uint32_t  wd_interval_ms;
-    uint32_t  wd_next_reset_ms;
-    uint32_t  wd_next_forced_reset_ms;
+    //uint32_t  wd_interval_ms;
+    //uint32_t  wd_next_reset_ms;
+    //uint32_t  wd_next_forced_reset_ms;
     uint32_t  sleep_time_ms;
     sleep_state_et sleep_state;
     uint8_t   reg_position;
